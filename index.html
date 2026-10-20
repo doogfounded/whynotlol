@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Avant-Garde Mechanical Scientific Calculator. Pure no-magic 3-stage switch architecture with live mechanical step visualization.">
+  <title>SWITCH // Mechanical Scientific Calculator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Top Bar: Diagnostics & Status -->
+    <header class="top-bar">
+      <div class="brand">
+        <span class="brand-icon"></span>
+        <h1 class="brand-title">SWITCH // MECH-CALC</h1>
+        <span class="brand-tag">3-Stage Machine</span>
+      </div>
+
+      <div class="status-controls">
+        <div class="mode-toggle" id="mode-toggle" role="radiogroup" aria-label="Angle Measurement Mode">
+          <button type="button" class="mode-btn active" id="btn-deg" data-mode="deg">DEG</button>
+          <button type="button" class="mode-btn" id="btn-rad" data-mode="rad">RAD</button>
+        </div>
+        <div class="ans-badge" id="ans-badge">ANS: <span id="ans-val">0</span></div>
+      </div>
+    </header>
+
+    <!-- Main Mechanical Console Deck -->
+    <main class="console-deck">
+      <div class="prompt-line">
+        <span class="prompt-prefix">&gt;</span>
+        <input 
+          type="text" 
+          id="formula-input" 
+          class="formula-input" 
+          placeholder="Type formula (e.g. 2 + sqrt(16) * 3 - sin(30))..." 
+          autocomplete="off" 
+          spellcheck="false"
+          autofocus
+        />
+      </div>
+
+      <!-- Character Alignment Marker / Error Arrow -->
+      <div class="pointer-line" id="pointer-line" aria-hidden="true">
+        <span class="pointer-arrow" id="pointer-arrow" style="display: none;">▲</span>
+      </div>
+
+      <!-- Dynamic Error Notification -->
+      <div class="error-banner" id="error-banner">
+        <span id="error-icon">⚠</span>
+        <span id="error-text"></span>
+      </div>
+
+      <!-- Big Live Result -->
+      <div class="answer-panel">
+        <div>
+          <div class="answer-label">Instant Output</div>
+          <div class="answer-display soft" id="answer-display">—</div>
+        </div>
+        <div class="answer-actions">
+          <button type="button" class="icon-btn" id="btn-copy" title="Copy answer to clipboard">Copy</button>
+          <button type="button" class="icon-btn" id="btn-clear" title="Clear console">Clear</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Interactive Formula Chips -->
+    <section class="quick-chips" aria-label="Example Formulas">
+      <span style="font-size: 11px; color: var(--text-muted); align-self: center;">Try:</span>
+      <button type="button" class="chip" data-expr="sqrt(3^2 + 4^2)">Pythagorean: sqrt(3^2 + 4^2)</button>
+      <button type="button" class="chip" data-expr="5! / (2! * 3!)">Combinations: 5! / (2! * 3!)</button>
+      <button type="button" class="chip" data-expr="sin(30) + cos(60)">Trig: sin(30) + cos(60)</button>
+      <button type="button" class="chip" data-expr="2pi * 10">Implicit: 2pi * 10</button>
+      <button type="button" class="chip" data-expr="ln(e^3) - log(100)">Logarithms: ln(e^3) - log(100)</button>
+    </section>
+
+    <!-- Stage 3: Live Gearbox Reduction Steps -->
+    <section class="gearbox-section">
+      <div class="section-header">
+        <span>Stage 3: Gearbox Reduction (Live Step Train)</span>
+        <span id="step-counter" style="color: var(--accent-cyan);">0 steps</span>
+      </div>
+      <div class="gear-rail" id="steps-rail">
+        <div class="step-empty">Type an expression above to watch the mechanical gears turn...</div>
+      </div>
+    </section>
+
+    <!-- Diagnostic Stage 1 & 2 Inspections -->
+    <section class="inspection-panel">
+      <!-- Stage 1: The Sorting Tray -->
+      <div class="inspector-card">
+        <div class="inspector-title">Stage 1: Sorting Tray (Tokens)</div>
+        <div class="token-strip" id="stage1-tokens">
+          <span style="color: var(--text-muted); font-size: 11px;">Waiting for input...</span>
+        </div>
+      </div>
+
+      <!-- Stage 2: The Priority Gate -->
+      <div class="inspector-card">
+        <div class="inspector-title">Stage 2: Priority Gate (RPN Queue)</div>
+        <div class="token-strip" id="stage2-queue">
+          <span style="color: var(--text-muted); font-size: 11px;">Waiting for input...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Keyboard Hotkeys Footer -->
+    <footer class="keyboard-hints">
+      <span><span class="kbd">Enter</span> Commit to ANS &amp; History</span>
+      <span><span class="kbd">↑</span> / <span class="kbd">↓</span> History</span>
+      <span><span class="kbd">Tab</span> Toggle DEG / RAD</span>
+      <span><span class="kbd">Esc</span> Clear</span>
+    </footer>
+
+  </div>
+
+  <!-- Pure No-Magic Scripts -->
+  <script src="functions.js"></script>
+  <script src="sorter.js"></script>
+  <script src="gate.js"></script>
+  <script src="gearbox.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

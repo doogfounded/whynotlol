@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mechanical Calculator Engine — Verification Suite</title>
+  <style>
+    body {
+      background: #0f1117;
+      color: #e2e8f0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      padding: 32px;
+      line-height: 1.6;
+    }
+    h1 { color: #f8fafc; font-size: 20px; margin-bottom: 8px; }
+    .subtitle { color: #94a3b8; font-size: 13px; margin-bottom: 24px; }
+    .badge { padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+    .badge-pass { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.4); }
+    .badge-fail { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.4); }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #1e293b; }
+    th { color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+    tr:hover { background: rgba(255, 255, 255, 0.02); }
+    .expr { color: #38bdf8; }
+    .steps { color: #94a3b8; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Mechanical Calculator Engine: Unit Verification</h1>
+  <div class="subtitle">Validating 3-stage pipeline (Sorter → Gate → Gearbox) with zero dependencies.</div>
+  <div id="summary">Running tests...</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 80px;">Status</th>
+        <th>Expression</th>
+        <th>Expected</th>
+        <th>Result</th>
+        <th>Mechanical Steps</th>
+      </tr>
+    </thead>
+    <tbody id="test-rows"></tbody>
+  </table>
+
+  <script src="functions.js"></script>
+  <script src="sorter.js"></script>
+  <script src="gate.js"></script>
+  <script src="gearbox.js"></script>
+  <script>
+    function calc(expr, angleMode = 'deg', ans = 0) {
+      const { tokens, error: sortErr } = tokenize(expr, ans);
+      if (sortErr) return { answer: null, steps: [], error: sortErr };
+      const { queue, error: gateErr } = parseToQueue(tokens);
+      if (gateErr) return { answer: null, steps: [], error: gateErr };
+      return evaluateQueue(queue, angleMode);
+    }
+
+    const testCases = [
+      { expr: "2 + 3 * 4", expected: 14, desc: "Precedence: * before +" },
+      { expr: "(2 + 3) * 4", expected: 20, desc: "Parentheses override" },
+      { expr: "10 - 4 - 2", expected: 4, desc: "Left-associative subtraction" },
+      { expr: "20 / 4 / 2", expected: 2.5, desc: "Left-associative division" },
+      { expr: "2 ^ 3 ^ 2", expected: 512, desc: "Right-associative exponentiation: 2^(3^2)" },
+      { expr: "(2 ^ 3) ^ 2", expected: 64, desc: "(2^3)^2" },
+      { expr: "0.1 + 0.2", expected: 0.3, desc: "Precision cleanup (0.3)" },
+      { expr: "1.5 * 2.5", expected: 3.75, desc: "Decimal multiplication" },
+      { expr: "-5 + 8", expected: 3, desc: "Leading unary minus" },
+      { expr: "3 * -4", expected: -12, desc: "Unary minus after multiply" },
+      { expr: "2(3 + 4)", expected: 14, desc: "Implicit mult: 2(3+4)" },
+      { expr: "(2 + 3)(4 + 1)", expected: 25, desc: "Implicit mult: (2+3)(4+1)" },
+      { expr: "2pi", expected: 2 * Math.PI, desc: "Implicit mult: 2pi" },
+      { expr: "3sin(30)", expected: 1.5, desc: "Implicit mult: 3sin(30)" },
+      { expr: "0!", expected: 1, desc: "0! = 1" },
+      { expr: "5!", expected: 120, desc: "5! = 120" },
+      { expr: "3! + 4!", expected: 30, desc: "Factorial in arithmetic" },
+      { expr: "pi", expected: Math.PI, desc: "Constant pi" },
+      { expr: "e", expected: Math.E, desc: "Constant e" },
+      { expr: "sin(30)", angle: "deg", expected: 0.5, desc: "sin(30 deg)" },
+      { expr: "cos(60)", angle: "deg", expected: 0.5, desc: "cos(60 deg)" },
+      { expr: "tan(45)", angle: "deg", expected: 1, desc: "tan(45 deg)" },
+      { expr: "sin(pi / 6)", angle: "rad", expected: 0.5, desc: "sin(pi/6 rad)" },
+      { expr: "log(1000)", expected: 3, desc: "log(1000)" },
+      { expr: "ln(e ^ 2)", expected: 2, desc: "ln(e^2)" },
+      { expr: "sqrt(144)", expected: 12, desc: "sqrt(144)" },
+      { expr: "sqrt(3^2 + 4^2)", expected: 5, desc: "Pythagorean sqrt(3^2 + 4^2)" },
+      { expr: "ans * 2", ans: 21, expected: 42, desc: "Previous ans memory" },
+      { expr: "2 + sqrt(16) * 3 - sin(90)", angle: "deg", expected: 13, desc: "Complex chained calculation" }
+    ];
+
+    const tbody = document.getElementById('test-rows');
+    let passed = 0;
+
+    testCases.forEach(tc => {
+      const res = calc(tc.expr, tc.angle || 'deg', tc.ans || 0);
+      const isOk = !res.error && Math.abs(res.answer - tc.expected) < 1e-10;
+      if (isOk) passed++;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="badge ${isOk ? 'badge-pass' : 'badge-fail'}">${isOk ? 'PASS' : 'FAIL'}</span></td>
+        <td class="expr">${tc.expr}</td>
+        <td>${tc.expected}</td>
+        <td>${res.error ? ('ERR: ' + res.error.message) : res.formattedAnswer}</td>
+        <td class="steps">${(res.steps || []).map(s => s.desc).join(' &rarr; ') || '—'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('summary').innerHTML = `
+      <strong style="color: ${passed === testCases.length ? '#4ade80' : '#f87171'}">
+        ${passed} / ${testCases.length} tests passed
+      </strong>
+    `;
+  </script>
+</body>
+</html>
